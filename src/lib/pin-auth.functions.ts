@@ -22,27 +22,40 @@ export const signInWithPin = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     const anon = createAnonClient();
+    // Verify PIN against portal_pins (fails closed on any RPC error — no
+    // hardcoded default-PIN fallback).
     const { data: role, error: lookupErr } = await anon.rpc("verify_portal_pin", {
       _pin: data.pin,
     });
-    const { DEFAULT_PORTAL_PINS, PORTAL_ACCOUNTS } = await import("./pin-auth.server");
-    const resolvedRole = role ?? (lookupErr ? DEFAULT_PORTAL_PINS[data.pin] : undefined);
-    if (!resolvedRole) throw new Error("Invalid PIN");
+    if (lookupErr || !role) throw new Error("Invalid PIN");
 
-    const cred = PORTAL_ACCOUNTS[resolvedRole as AppRole];
+    const { PORTAL_ACCOUNTS } = await import("./pin-auth.server");
+    const cred = PORTAL_ACCOUNTS[role as AppRole];
     if (!cred) throw new Error("Invalid PIN");
 
-    const { data: signIn, error } = await anon.auth.signInWithPassword({
+    // Mint a one-time magic-link token via Admin API, then exchange it for a
+    // session using the anon client. No shared portal passwords required.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: link, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
+      type: "magiclink",
       email: cred.email,
-      password: cred.password,
     });
-    if (error || !signIn.session) {
+    if (linkErr || !link?.properties?.hashed_token) {
       throw new Error("Portal account not available. Contact the administrator.");
     }
+
+    const { data: verified, error: verifyErr } = await anon.auth.verifyOtp({
+      type: "magiclink",
+      token_hash: link.properties.hashed_token,
+    });
+    if (verifyErr || !verified.session) {
+      throw new Error("Portal account not available. Contact the administrator.");
+    }
+
     return {
       label: cred.label,
-      access_token: signIn.session.access_token,
-      refresh_token: signIn.session.refresh_token,
+      access_token: verified.session.access_token,
+      refresh_token: verified.session.refresh_token,
     };
   });
 
@@ -54,8 +67,6 @@ export const setPortalPin = createServerFn({ method: "POST" })
     return { role: data.role, pin: data.pin };
   })
   .handler(async ({ data, context }) => {
-    // RLS on portal_pins already restricts writes to admins; use the
-    // caller's authenticated client so no service-role key is needed.
     const { supabase, userId } = context;
 
     const { data: adminRow, error: adminErr } = await supabase
