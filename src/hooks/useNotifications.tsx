@@ -80,12 +80,21 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     })();
   }, [user]);
 
-  // Detect current push subscription
+  // Detect current push subscription & auto-subscribe when possible
   useEffect(() => {
     if (!user || !isPushSupported()) return;
     (async () => {
-      const reg = await navigator.serviceWorker.getRegistration();
-      const sub = await reg?.pushManager.getSubscription();
+      const reg = await navigator.serviceWorker.getRegistration() ?? await (async () => {
+        try { return await navigator.serviceWorker.register("/sw.js", { scope: "/" }); } catch { return null; }
+      })();
+      let sub = await reg?.pushManager.getSubscription();
+      // If permission already granted and no active subscription, silently (re)subscribe
+      if (!sub && typeof Notification !== "undefined" && Notification.permission === "granted") {
+        sub = await subscribeToPush(user.id);
+      } else if (sub) {
+        // Ensure DB row exists for this subscription (idempotent)
+        await subscribeToPush(user.id);
+      }
       setPushSubscribed(!!sub);
     })();
   }, [user]);
