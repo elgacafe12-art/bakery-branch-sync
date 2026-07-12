@@ -262,6 +262,7 @@ export type Database = {
           message: string
           metadata: Json
           priority: string
+          pushed_at: string | null
           quantity: number | null
           read: boolean
           related_id: string | null
@@ -281,6 +282,7 @@ export type Database = {
           message: string
           metadata?: Json
           priority?: string
+          pushed_at?: string | null
           quantity?: number | null
           read?: boolean
           related_id?: string | null
@@ -300,6 +302,7 @@ export type Database = {
           message?: string
           metadata?: Json
           priority?: string
+          pushed_at?: string | null
           quantity?: number | null
           read?: boolean
           related_id?: string | null
