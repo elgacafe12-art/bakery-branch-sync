@@ -20,7 +20,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <NotificationsProvider>
-      <SidebarProvider>
+      <SidebarProvider defaultOpen={typeof window !== "undefined" ? window.innerWidth >= 1024 : true}>
         <AppSidebar roles={roles} />
         <SidebarInset>
           <header className="sticky top-0 z-30 h-14 border-b bg-background/95 backdrop-blur flex items-center gap-3 px-4">
