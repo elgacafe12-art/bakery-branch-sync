@@ -1,20 +1,43 @@
 import { createFileRoute } from "@tanstack/react-router";
 import webpush from "web-push";
 import { createClient } from "@supabase/supabase-js";
+import { timingSafeEqual } from "node:crypto";
 import type { Database } from "@/integrations/supabase/types";
+
+function safeEqual(a: string, b: string): boolean {
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ab.length !== bb.length) return false;
+  return timingSafeEqual(ab, bb);
+}
 
 export const Route = createFileRoute("/api/public/hooks/dispatch-push")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
         const url = process.env.SUPABASE_URL;
         const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
         const vapidPublic = process.env.VAPID_PUBLIC_KEY;
         const vapidPrivate = process.env.VAPID_PRIVATE_KEY;
         const vapidSubject = process.env.VAPID_SUBJECT || "mailto:admin@example.com";
+        const expectedSecret = process.env.PUSH_DISPATCH_SECRET;
+
+        if (!expectedSecret) {
+          return new Response(JSON.stringify({ error: "unavailable" }), { status: 503 });
+        }
+
+        // Require the shared cron secret. Anonymous callers are rejected
+        // before any privileged service-role work runs.
+        const provided =
+          request.headers.get("x-dispatch-secret") ||
+          request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ||
+          "";
+        if (!provided || !safeEqual(provided, expectedSecret)) {
+          return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+        }
 
         if (!url || !serviceKey || !vapidPublic || !vapidPrivate) {
-          return new Response(JSON.stringify({ error: "missing env" }), { status: 500 });
+          return new Response(JSON.stringify({ error: "unavailable" }), { status: 503 });
         }
 
         webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate);
@@ -33,7 +56,10 @@ export const Route = createFileRoute("/api/public/hooks/dispatch-push")({
           .order("created_at", { ascending: true })
           .limit(200);
 
-        if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+        if (error) {
+          console.error("dispatch-push notifications query failed", error);
+          return new Response(JSON.stringify({ error: "internal_error" }), { status: 500 });
+        }
         if (!notifs?.length) return new Response(JSON.stringify({ pushed: 0 }), { headers: { "Content-Type": "application/json" } });
 
         const userIds = Array.from(new Set(notifs.map((n) => n.user_id).filter(Boolean))) as string[];
