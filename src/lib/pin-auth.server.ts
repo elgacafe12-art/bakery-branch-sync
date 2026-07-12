@@ -1,7 +1,7 @@
 // SERVER-ONLY. Never import this from client code — the *.server.ts suffix
-// blocks it from client bundles. Contains the fixed portal account
-// credentials keyed by ROLE. The PIN → role mapping now lives in the DB
-// (public.portal_pins) so admins can change PINs at runtime.
+// blocks it from client bundles. Contains the portal account credentials
+// keyed by ROLE. Passwords are loaded from server-side secrets at runtime
+// and are NEVER committed to source.
 import type { AppRole } from "./roles";
 
 export interface PortalCredential {
@@ -11,14 +11,21 @@ export interface PortalCredential {
   label: string;
 }
 
-// Passwords are ONLY known to server code and MUST match auth.users.
+function requirePw(name: string): string {
+  const v = process.env[name];
+  if (!v) throw new Error(`Missing portal password secret: ${name}`);
+  return v;
+}
+
+// Passwords come from Lovable Cloud secrets (PORTAL_PW_*). Rotate them by
+// updating the secret and the corresponding auth.users password together.
 export const PORTAL_ACCOUNTS: Record<AppRole, PortalCredential> = {
-  admin:          { role: "admin",          email: "admin@elga.local",    password: "elga-srv-adm-K7pQx9nR2mW8vLtY", label: "Administrator" },
-  central_store:  { role: "central_store",  email: "store@elga.local",    password: "elga-srv-str-J3fH8kD2nB5cM9zP", label: "Central Store" },
-  central_bakery: { role: "central_bakery", email: "bakery@elga.local",   password: "elga-srv-bak-T6yN2gF4wQ8sX1jL", label: "Central Bakery" },
-  delivery_man:   { role: "delivery_man",   email: "delivery@elga.local", password: "elga-srv-del-V9mP3xC7bH5rD2kQ", label: "Delivery Man" },
-  branch_1:       { role: "branch_1",       email: "branch1@elga.local",  password: "elga-srv-b1-N8jK4wY6tR3fM9pQ",  label: "Branch 1" },
-  branch_2:       { role: "branch_2",       email: "branch2@elga.local",  password: "elga-srv-b2-L2xB7hV5nD8cF4mR",  label: "Branch 2" },
+  admin:          { role: "admin",          email: "admin@elga.local",    get password() { return requirePw("PORTAL_PW_ADMIN"); },    label: "Administrator" } as PortalCredential,
+  central_store:  { role: "central_store",  email: "store@elga.local",    get password() { return requirePw("PORTAL_PW_STORE"); },    label: "Central Store" } as PortalCredential,
+  central_bakery: { role: "central_bakery", email: "bakery@elga.local",   get password() { return requirePw("PORTAL_PW_BAKERY"); },   label: "Central Bakery" } as PortalCredential,
+  delivery_man:   { role: "delivery_man",   email: "delivery@elga.local", get password() { return requirePw("PORTAL_PW_DELIVERY"); }, label: "Delivery Man" } as PortalCredential,
+  branch_1:       { role: "branch_1",       email: "branch1@elga.local",  get password() { return requirePw("PORTAL_PW_BRANCH1"); },  label: "Branch 1" } as PortalCredential,
+  branch_2:       { role: "branch_2",       email: "branch2@elga.local",  get password() { return requirePw("PORTAL_PW_BRANCH2"); },  label: "Branch 2" } as PortalCredential,
 };
 
 export const DEFAULT_PORTAL_PINS: Record<string, AppRole> = {
