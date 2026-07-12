@@ -33,10 +33,19 @@ export async function exportToPdf(filename: string, title: string, headers: stri
   toast.success("PDF downloaded");
 }
 
+const escapeHtml = (v: string | number) =>
+  String(v ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 export function printTable(title: string, headers: string[], rows: (string | number)[][]) {
   const w = window.open("", "_blank", "width=900,height=700");
   if (!w) { toast.error("Popup blocked"); return; }
-  const html = `<html><head><title>${title}</title><style>
+  const safeTitle = escapeHtml(title);
+  const html = `<html><head><title>${safeTitle}</title><style>
     body{font-family:system-ui,sans-serif;padding:24px;color:#111}
     h1{font-size:18px;margin:0 0 4px}.meta{color:#666;font-size:12px;margin-bottom:16px}
     table{width:100%;border-collapse:collapse;font-size:12px}
@@ -44,9 +53,9 @@ export function printTable(title: string, headers: string[], rows: (string | num
     thead{background:#f3f4f6}tr:nth-child(even){background:#fafafa}
     @media print{@page{size:landscape}}
   </style></head><body>
-  <h1>${title}</h1><div class="meta">Generated ${new Date().toLocaleString()}</div>
-  <table><thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
-  <tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${String(c ?? "")}</td>`).join("")}</tr>`).join("")}</tbody></table>
+  <h1>${safeTitle}</h1><div class="meta">Generated ${escapeHtml(new Date().toLocaleString())}</div>
+  <table><thead><tr>${headers.map((h) => `<th>${escapeHtml(h)}</th>`).join("")}</tr></thead>
+  <tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${escapeHtml(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>
   <script>window.onload=()=>{window.print();setTimeout(()=>window.close(),300)}</script>
   </body></html>`;
   w.document.write(html); w.document.close();
