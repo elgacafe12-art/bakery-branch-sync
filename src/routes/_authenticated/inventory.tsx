@@ -28,7 +28,7 @@ function InventoryPage() {
   const scope = useMemo(() => {
     if (isAdmin) return { location: null as LocationType | null, itemType: null as "ingredient" | "product" | null };
     if (roles.includes("central_store")) return { location: "central_store" as LocationType, itemType: "ingredient" as const };
-    if (roles.includes("central_bakery")) return { location: "central_bakery" as LocationType, itemType: "product" as const };
+    if (roles.includes("central_bakery")) return { location: "central_bakery" as LocationType, itemType: null };
     if (roles.includes("branch_1")) return { location: "branch_1" as LocationType, itemType: null };
     if (roles.includes("branch_2")) return { location: "branch_2" as LocationType, itemType: null };
     return { location: null, itemType: null };
