@@ -230,35 +230,86 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_settings: {
+        Row: {
+          push_enabled: boolean
+          sound_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          push_enabled?: boolean
+          sound_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          push_enabled?: boolean
+          sound_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
           id: string
+          item_id: string | null
+          item_type: Database["public"]["Enums"]["item_type"] | null
           link: string | null
+          location: Database["public"]["Enums"]["location_type"] | null
           message: string
+          metadata: Json
+          priority: string
+          pushed_at: string | null
+          quantity: number | null
           read: boolean
+          related_id: string | null
+          related_type: string | null
           target_role: Database["public"]["Enums"]["app_role"] | null
           title: string
+          type: string
           user_id: string | null
         }
         Insert: {
           created_at?: string
           id?: string
+          item_id?: string | null
+          item_type?: Database["public"]["Enums"]["item_type"] | null
           link?: string | null
+          location?: Database["public"]["Enums"]["location_type"] | null
           message: string
+          metadata?: Json
+          priority?: string
+          pushed_at?: string | null
+          quantity?: number | null
           read?: boolean
+          related_id?: string | null
+          related_type?: string | null
           target_role?: Database["public"]["Enums"]["app_role"] | null
           title: string
+          type?: string
           user_id?: string | null
         }
         Update: {
           created_at?: string
           id?: string
+          item_id?: string | null
+          item_type?: Database["public"]["Enums"]["item_type"] | null
           link?: string | null
+          location?: Database["public"]["Enums"]["location_type"] | null
           message?: string
+          metadata?: Json
+          priority?: string
+          pushed_at?: string | null
+          quantity?: number | null
           read?: boolean
+          related_id?: string | null
+          related_type?: string | null
           target_role?: Database["public"]["Enums"]["app_role"] | null
           title?: string
+          type?: string
           user_id?: string | null
         }
         Relationships: []
@@ -415,6 +466,39 @@ export type Database = {
           id?: string
           phone?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -676,6 +760,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      emit_reminders: { Args: never; Returns: undefined }
       ingredients: {
         Args: { "": Database["public"]["Tables"]["inventory"]["Row"] }
         Returns: {
@@ -697,6 +782,29 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      item_display_name: {
+        Args: { _id: string; _type: Database["public"]["Enums"]["item_type"] }
+        Returns: string
+      }
+      notify_users: {
+        Args: {
+          _item_id?: string
+          _item_type?: Database["public"]["Enums"]["item_type"]
+          _link?: string
+          _location?: Database["public"]["Enums"]["location_type"]
+          _message: string
+          _metadata?: Json
+          _priority: string
+          _quantity?: number
+          _related_id?: string
+          _related_type?: string
+          _roles: Database["public"]["Enums"]["app_role"][]
+          _title: string
+          _type: string
+          _user_ids: string[]
+        }
+        Returns: undefined
+      }
       products: {
         Args: { "": Database["public"]["Tables"]["inventory"]["Row"] }
         Returns: {
@@ -715,6 +823,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: true
         }
+      }
+      role_for_location: {
+        Args: { _loc: Database["public"]["Enums"]["location_type"] }
+        Returns: Database["public"]["Enums"]["app_role"]
       }
       verify_portal_pin: {
         Args: { _pin: string }

@@ -28,6 +28,7 @@ import { Route as AuthenticatedDamageRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedRequestsIndexRouteImport } from './routes/_authenticated/requests/index'
 import { Route as AuthenticatedRequestsNewRouteImport } from './routes/_authenticated/requests/new'
 import { Route as AuthenticatedRequestsIdRouteImport } from './routes/_authenticated/requests/$id'
+import { Route as ApiPublicHooksDispatchPushRouteImport } from './routes/api/public/hooks/dispatch-push'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -127,6 +128,12 @@ const AuthenticatedRequestsIdRoute = AuthenticatedRequestsIdRouteImport.update({
   path: '/requests/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicHooksDispatchPushRoute =
+  ApiPublicHooksDispatchPushRouteImport.update({
+    id: '/api/public/hooks/dispatch-push',
+    path: '/api/public/hooks/dispatch-push',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -147,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/requests/$id': typeof AuthenticatedRequestsIdRoute
   '/requests/new': typeof AuthenticatedRequestsNewRoute
   '/requests/': typeof AuthenticatedRequestsIndexRoute
+  '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -167,6 +175,7 @@ export interface FileRoutesByTo {
   '/requests/$id': typeof AuthenticatedRequestsIdRoute
   '/requests/new': typeof AuthenticatedRequestsNewRoute
   '/requests': typeof AuthenticatedRequestsIndexRoute
+  '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -189,6 +198,7 @@ export interface FileRoutesById {
   '/_authenticated/requests/$id': typeof AuthenticatedRequestsIdRoute
   '/_authenticated/requests/new': typeof AuthenticatedRequestsNewRoute
   '/_authenticated/requests/': typeof AuthenticatedRequestsIndexRoute
+  '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -211,6 +221,7 @@ export interface FileRouteTypes {
     | '/requests/$id'
     | '/requests/new'
     | '/requests/'
+    | '/api/public/hooks/dispatch-push'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -231,6 +242,7 @@ export interface FileRouteTypes {
     | '/requests/$id'
     | '/requests/new'
     | '/requests'
+    | '/api/public/hooks/dispatch-push'
   id:
     | '__root__'
     | '/'
@@ -252,12 +264,14 @@ export interface FileRouteTypes {
     | '/_authenticated/requests/$id'
     | '/_authenticated/requests/new'
     | '/_authenticated/requests/'
+    | '/api/public/hooks/dispatch-push'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicHooksDispatchPushRoute: typeof ApiPublicHooksDispatchPushRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -395,6 +409,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRequestsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/hooks/dispatch-push': {
+      id: '/api/public/hooks/dispatch-push'
+      path: '/api/public/hooks/dispatch-push'
+      fullPath: '/api/public/hooks/dispatch-push'
+      preLoaderRoute: typeof ApiPublicHooksDispatchPushRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -443,6 +464,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicHooksDispatchPushRoute: ApiPublicHooksDispatchPushRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
