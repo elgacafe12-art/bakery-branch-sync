@@ -89,31 +89,66 @@ function RequestDetail() {
   };
 
   const pickup = async () => {
-    // Deduct from source inventory
+    // Deduct from source inventory. Guard against re-running by checking existing delivery_out.
     const items = req.request_items ?? [];
-    const movements = items.map((it: any) => ({
-      location: req.from_location, item_type: req.item_type, item_id: it.item_id,
-      quantity: -Number(it.quantity), movement: "delivery_out" as const,
-      reference_type: "request", reference_id: req.id, performed_by: user?.id,
-    }));
-    await supabase.from("inventory_movements").insert(movements);
+    const { data: existing } = await supabase
+      .from("inventory_movements")
+      .select("id")
+      .eq("reference_type", "request")
+      .eq("reference_id", req.id)
+      .eq("movement", "delivery_out");
+    if (!existing || existing.length === 0) {
+      const movements = items.map((it: any) => ({
+        location: req.from_location, item_type: req.item_type, item_id: it.item_id,
+        quantity: -Number(it.quantity), movement: "delivery_out" as const,
+        reference_type: "request", reference_id: req.id, performed_by: user?.id,
+      }));
+      const { error: mErr } = await supabase.from("inventory_movements").insert(movements);
+      if (mErr) return toast.error(`Pickup failed: ${mErr.message}`);
+    }
     update({ status: "picked_up", picked_up_at: new Date().toISOString() });
   };
 
   const deliver = async () => {
     const items = req.request_items ?? [];
-    // Update damaged/missing quantities per item
+    // Safety net: if pickup was never recorded (legacy/silent-fail), record delivery_out now too.
+    const { data: outExisting } = await supabase
+      .from("inventory_movements")
+      .select("id")
+      .eq("reference_type", "request")
+      .eq("reference_id", req.id)
+      .eq("movement", "delivery_out");
+    if (!outExisting || outExisting.length === 0) {
+      const outMovements = items.map((it: any) => ({
+        location: req.from_location, item_type: req.item_type, item_id: it.item_id,
+        quantity: -Number(it.quantity), movement: "delivery_out" as const,
+        reference_type: "request", reference_id: req.id, performed_by: user?.id,
+      }));
+      const { error: outErr } = await supabase.from("inventory_movements").insert(outMovements);
+      if (outErr) return toast.error(`Source deduction failed: ${outErr.message}`);
+    }
+
+    // Guard against re-running deliver
+    const { data: inExisting } = await supabase
+      .from("inventory_movements")
+      .select("id")
+      .eq("reference_type", "request")
+      .eq("reference_id", req.id)
+      .eq("movement", "delivery_in");
+    const alreadyIn = (inExisting ?? []).length > 0;
+
     for (const it of items) {
       const edits = notesEdit[it.id] ?? { damaged: it.damaged_quantity ?? 0, missing: it.missing_quantity ?? 0 };
       const delivered = Number(it.quantity) - edits.damaged - edits.missing;
       await supabase.from("request_items").update({
         delivered_quantity: delivered, damaged_quantity: edits.damaged, missing_quantity: edits.missing,
       }).eq("id", it.id);
-      if (delivered > 0) {
-        await supabase.from("inventory_movements").insert({
+      if (delivered > 0 && !alreadyIn) {
+        const { error: inErr } = await supabase.from("inventory_movements").insert({
           location: req.to_location, item_type: req.item_type, item_id: it.item_id,
           quantity: delivered, movement: "delivery_in" as const, reference_type: "request", reference_id: req.id, performed_by: user?.id,
         });
+        if (inErr) return toast.error(`Delivery-in failed: ${inErr.message}`);
       }
     }
     update({ status: "delivered", delivered_at: new Date().toISOString() }, async () => {
