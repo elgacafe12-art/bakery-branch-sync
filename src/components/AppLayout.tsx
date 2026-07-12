@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { ROLE_LABELS } from "@/lib/roles";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NotificationsProvider } from "@/hooks/useNotifications";
+import { RealtimeSyncProvider } from "@/components/RealtimeSyncProvider";
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { user, roles, loading } = useAuth();
