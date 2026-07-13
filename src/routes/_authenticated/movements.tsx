@@ -39,6 +39,7 @@ const MOVEMENT_TONE: Record<string, string> = {
   production_out: "bg-warning/20 text-warning-foreground border-warning/40",
   damage: "bg-destructive/15 text-destructive border-destructive/30",
   adjustment: "bg-muted text-muted-foreground border-border",
+  usage: "bg-warning/15 text-warning-foreground border-warning/40",
 };
 
 function MovementsPage() {
