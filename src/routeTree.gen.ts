@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
+import { Route as AuthenticatedUsageRouteImport } from './routes/_authenticated/usage'
 import { Route as AuthenticatedSuppliersRouteImport } from './routes/_authenticated/suppliers'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedReceiveRouteImport } from './routes/_authenticated/receive'
@@ -47,6 +48,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
   id: '/users',
   path: '/users',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedUsageRoute = AuthenticatedUsageRouteImport.update({
+  id: '/usage',
+  path: '/usage',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSuppliersRoute = AuthenticatedSuppliersRouteImport.update({
@@ -150,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/receive': typeof AuthenticatedReceiveRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/suppliers': typeof AuthenticatedSuppliersRoute
+  '/usage': typeof AuthenticatedUsageRoute
   '/users': typeof AuthenticatedUsersRoute
   '/requests/$id': typeof AuthenticatedRequestsIdRoute
   '/requests/new': typeof AuthenticatedRequestsNewRoute
@@ -171,6 +178,7 @@ export interface FileRoutesByTo {
   '/receive': typeof AuthenticatedReceiveRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/suppliers': typeof AuthenticatedSuppliersRoute
+  '/usage': typeof AuthenticatedUsageRoute
   '/users': typeof AuthenticatedUsersRoute
   '/requests/$id': typeof AuthenticatedRequestsIdRoute
   '/requests/new': typeof AuthenticatedRequestsNewRoute
@@ -194,6 +202,7 @@ export interface FileRoutesById {
   '/_authenticated/receive': typeof AuthenticatedReceiveRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/suppliers': typeof AuthenticatedSuppliersRoute
+  '/_authenticated/usage': typeof AuthenticatedUsageRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/requests/$id': typeof AuthenticatedRequestsIdRoute
   '/_authenticated/requests/new': typeof AuthenticatedRequestsNewRoute
@@ -217,6 +226,7 @@ export interface FileRouteTypes {
     | '/receive'
     | '/reports'
     | '/suppliers'
+    | '/usage'
     | '/users'
     | '/requests/$id'
     | '/requests/new'
@@ -238,6 +248,7 @@ export interface FileRouteTypes {
     | '/receive'
     | '/reports'
     | '/suppliers'
+    | '/usage'
     | '/users'
     | '/requests/$id'
     | '/requests/new'
@@ -260,6 +271,7 @@ export interface FileRouteTypes {
     | '/_authenticated/receive'
     | '/_authenticated/reports'
     | '/_authenticated/suppliers'
+    | '/_authenticated/usage'
     | '/_authenticated/users'
     | '/_authenticated/requests/$id'
     | '/_authenticated/requests/new'
@@ -302,6 +314,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/users'
       preLoaderRoute: typeof AuthenticatedUsersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/usage': {
+      id: '/_authenticated/usage'
+      path: '/usage'
+      fullPath: '/usage'
+      preLoaderRoute: typeof AuthenticatedUsageRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/suppliers': {
@@ -432,6 +451,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedReceiveRoute: typeof AuthenticatedReceiveRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedSuppliersRoute: typeof AuthenticatedSuppliersRoute
+  AuthenticatedUsageRoute: typeof AuthenticatedUsageRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
   AuthenticatedRequestsIdRoute: typeof AuthenticatedRequestsIdRoute
   AuthenticatedRequestsNewRoute: typeof AuthenticatedRequestsNewRoute
@@ -451,6 +471,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedReceiveRoute: AuthenticatedReceiveRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedSuppliersRoute: AuthenticatedSuppliersRoute,
+  AuthenticatedUsageRoute: AuthenticatedUsageRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
   AuthenticatedRequestsIdRoute: AuthenticatedRequestsIdRoute,
   AuthenticatedRequestsNewRoute: AuthenticatedRequestsNewRoute,

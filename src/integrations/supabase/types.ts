@@ -855,6 +855,7 @@ export type Database = {
         | "production_out"
         | "damage"
         | "adjustment"
+        | "usage"
       request_status:
         | "pending"
         | "approved"
@@ -1014,6 +1015,7 @@ export const Constants = {
         "production_out",
         "damage",
         "adjustment",
+        "usage",
       ],
       request_status: [
         "pending",

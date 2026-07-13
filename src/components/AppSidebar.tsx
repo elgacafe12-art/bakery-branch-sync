@@ -35,6 +35,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
       { title: "Deliveries", url: "/deliveries", icon: Truck, roles: ["admin", "central_store", "central_bakery", "delivery_man"] },
       { title: "Receive from Supplier", url: "/receive", icon: PackageCheck, roles: ["admin", "central_store"] },
       { title: "Production", url: "/production", icon: ChefHat, roles: ["admin", "central_bakery"] },
+      { title: "Raw Material Usage", url: "/usage", icon: ChefHat, roles: ["admin", "branch_1", "branch_2"] },
       { title: "Damage / Issues", url: "/damage", icon: AlertTriangle, roles: "all" },
     ],
   },
