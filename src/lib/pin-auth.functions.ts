@@ -21,17 +21,22 @@ export const signInWithPin = createServerFn({ method: "POST" })
     return { pin: data.pin };
   })
   .handler(async ({ data }) => {
-    const anon = createAnonClient();
-    // Verify PIN against portal_pins (fails closed on any RPC error — no
-    // hardcoded default-PIN fallback).
-    const { data: role, error: lookupErr } = await anon.rpc("verify_portal_pin", {
-      _pin: data.pin,
-    });
-    if (lookupErr || !role) throw new Error("Invalid PIN");
+    // Verify PIN server-side using the service-role client. The lookup used
+    // to go through a public SECURITY DEFINER RPC callable by anon; that
+    // surface has been removed. This handler is the only caller.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: pinRow, error: lookupErr } = await supabaseAdmin
+      .from("portal_pins")
+      .select("role")
+      .eq("pin", data.pin)
+      .maybeSingle();
+    if (lookupErr || !pinRow?.role) throw new Error("Invalid PIN");
+    const role = pinRow.role as AppRole;
 
     const { PORTAL_ACCOUNTS } = await import("./pin-auth.server");
-    const cred = PORTAL_ACCOUNTS[role as AppRole];
+    const cred = PORTAL_ACCOUNTS[role];
     if (!cred) throw new Error("Invalid PIN");
+
 
     // Mint a one-time magic-link token via Admin API, then exchange it for a
     // session using the anon client. No shared portal passwords required.
