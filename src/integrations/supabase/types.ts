@@ -828,10 +828,6 @@ export type Database = {
         Args: { _loc: Database["public"]["Enums"]["location_type"] }
         Returns: Database["public"]["Enums"]["app_role"]
       }
-      verify_portal_pin: {
-        Args: { _pin: string }
-        Returns: Database["public"]["Enums"]["app_role"]
-      }
     }
     Enums: {
       app_role:
