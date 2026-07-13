@@ -28,6 +28,7 @@ const MOVEMENT_LABEL: Record<string, string> = {
   production_out: "Production OUT",
   damage: "Damage",
   adjustment: "Adjustment",
+  usage: "Usage",
 };
 
 const MOVEMENT_TONE: Record<string, string> = {
