@@ -40,7 +40,6 @@ export const signInWithPin = createServerFn({ method: "POST" })
 
     // Mint a one-time magic-link token via Admin API, then exchange it for a
     // session using the anon client. No shared portal passwords required.
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: link, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
       type: "magiclink",
       email: cred.email,
@@ -49,6 +48,7 @@ export const signInWithPin = createServerFn({ method: "POST" })
       throw new Error("Portal account not available. Contact the administrator.");
     }
 
+    const anon = createAnonClient();
     const { data: verified, error: verifyErr } = await anon.auth.verifyOtp({
       type: "magiclink",
       token_hash: link.properties.hashed_token,
