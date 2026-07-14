@@ -43,6 +43,24 @@ function DamagePage() {
     },
   });
 
+  const { data: stockRow } = useQuery({
+    queryKey: ["damage-stock", location, itemType, itemId],
+    enabled: !!itemId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("inventory")
+        .select("quantity")
+        .eq("location", location as any)
+        .eq("item_type", itemType as any)
+        .eq("item_id", itemId)
+        .maybeSingle();
+      return data;
+    },
+  });
+  const availableStock = Number(stockRow?.quantity ?? 0);
+  const requestedQty = Number(quantity || 0);
+  const insufficient = !!itemId && requestedQty > 0 && requestedQty > availableStock;
+
   const { data: logs } = useQuery({
     queryKey: ["damage-logs"],
     queryFn: async () => {
@@ -59,6 +77,7 @@ function DamagePage() {
     mutationFn: async () => {
       if (!user) throw new Error("Not signed in");
       if (!reason.trim()) throw new Error("Reason is required");
+      if (insufficient) throw new Error(`Insufficient stock: available ${availableStock}, requested ${requestedQty}`);
       const { error } = await supabase.from("damage_logs").insert({
         reporter_id: user.id,
         location: location as any,
@@ -71,11 +90,11 @@ function DamagePage() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Damage report submitted");
+      toast.success("Damage recorded — stock updated");
       setReason(""); setQuantity(""); setItemId(""); setPhotoUrl("");
-      qc.invalidateQueries({ queryKey: ["damage-logs"] });
+      qc.invalidateQueries();
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => toast.error(String(e?.message ?? e)),
   });
 
   const resolve = async (id: string, resolved: boolean) => {
@@ -125,6 +144,12 @@ function DamagePage() {
           <div className="space-y-2">
             <Label>Quantity (optional)</Label>
             <Input type="number" step="0.01" value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="e.g. 3" />
+            {itemId && (
+              <p className={`text-xs ${insufficient ? "text-destructive" : "text-muted-foreground"}`}>
+                Available stock: {availableStock}
+                {insufficient && " — insufficient stock"}
+              </p>
+            )}
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label>Reason / description</Label>
@@ -135,7 +160,7 @@ function DamagePage() {
             <Input value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} placeholder="https://…" />
           </div>
           <div className="md:col-span-2">
-            <Button onClick={() => create.mutate()} disabled={create.isPending}>Submit report</Button>
+            <Button onClick={() => create.mutate()} disabled={create.isPending || insufficient}>Submit report</Button>
           </div>
         </CardContent>
       </Card>
