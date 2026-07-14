@@ -84,6 +84,15 @@ function AdminPortal() {
         <StatTile title="Low-stock items" value={stats?.lowStock?.length ?? 0} icon={AlertTriangle} tone="destructive" />
       </div>
 
+      <DamageSummary
+        title="Company-wide Damage Summary"
+        showBreakdown
+        showValue
+        locations={["central_store", "central_bakery", "branch_1", "branch_2"]}
+      />
+
+
+
       {stats?.lowStock && stats.lowStock.length > 0 && (
         <Card className="border-warning/40 bg-warning/5">
           <CardHeader>
