@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Send, Truck, Warehouse, AlertTriangle, PackageCheck } from "lucide-react";
 import { LOCATION_LABELS, STATUS_COLORS, STATUS_LABELS, type LocationType } from "@/lib/roles";
 import { PortalHeader, QuickTile, StatTile } from "./shared";
+import { DamageSummary } from "./DamageSummary";
 
 export function BranchPortal({ location, label }: { location: LocationType; label: string }) {
   const { data } = useQuery({

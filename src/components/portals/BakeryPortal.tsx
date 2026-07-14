@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Send, ChefHat, Truck, Warehouse, AlertTriangle, ClipboardList } from "lucide-react";
 import { LOCATION_LABELS, STATUS_COLORS, STATUS_LABELS } from "@/lib/roles";
 import { PortalHeader, QuickTile, StatTile } from "./shared";
+import { DamageSummary } from "./DamageSummary";
 
 export function BakeryPortal() {
   const { data } = useQuery({
