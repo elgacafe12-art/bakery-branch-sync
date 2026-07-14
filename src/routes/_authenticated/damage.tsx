@@ -144,6 +144,12 @@ function DamagePage() {
           <div className="space-y-2">
             <Label>Quantity (optional)</Label>
             <Input type="number" step="0.01" value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="e.g. 3" />
+            {itemId && (
+              <p className={`text-xs ${insufficient ? "text-destructive" : "text-muted-foreground"}`}>
+                Available stock: {availableStock}
+                {insufficient && " — insufficient stock"}
+              </p>
+            )}
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label>Reason / description</Label>
@@ -154,7 +160,7 @@ function DamagePage() {
             <Input value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} placeholder="https://…" />
           </div>
           <div className="md:col-span-2">
-            <Button onClick={() => create.mutate()} disabled={create.isPending}>Submit report</Button>
+            <Button onClick={() => create.mutate()} disabled={create.isPending || insufficient}>Submit report</Button>
           </div>
         </CardContent>
       </Card>
