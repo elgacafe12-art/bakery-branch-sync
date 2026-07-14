@@ -43,6 +43,24 @@ function DamagePage() {
     },
   });
 
+  const { data: stockRow } = useQuery({
+    queryKey: ["damage-stock", location, itemType, itemId],
+    enabled: !!itemId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("inventory")
+        .select("quantity")
+        .eq("location", location as any)
+        .eq("item_type", itemType as any)
+        .eq("item_id", itemId)
+        .maybeSingle();
+      return data;
+    },
+  });
+  const availableStock = Number(stockRow?.quantity ?? 0);
+  const requestedQty = Number(quantity || 0);
+  const insufficient = !!itemId && requestedQty > 0 && requestedQty > availableStock;
+
   const { data: logs } = useQuery({
     queryKey: ["damage-logs"],
     queryFn: async () => {
@@ -59,6 +77,7 @@ function DamagePage() {
     mutationFn: async () => {
       if (!user) throw new Error("Not signed in");
       if (!reason.trim()) throw new Error("Reason is required");
+      if (insufficient) throw new Error(`Insufficient stock: available ${availableStock}, requested ${requestedQty}`);
       const { error } = await supabase.from("damage_logs").insert({
         reporter_id: user.id,
         location: location as any,
@@ -71,11 +90,11 @@ function DamagePage() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Damage report submitted");
+      toast.success("Damage recorded — stock updated");
       setReason(""); setQuantity(""); setItemId(""); setPhotoUrl("");
-      qc.invalidateQueries({ queryKey: ["damage-logs"] });
+      qc.invalidateQueries();
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => toast.error(String(e?.message ?? e)),
   });
 
   const resolve = async (id: string, resolved: boolean) => {
