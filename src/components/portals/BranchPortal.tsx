@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Send, Truck, Warehouse, AlertTriangle, PackageCheck } from "lucide-react";
 import { LOCATION_LABELS, STATUS_COLORS, STATUS_LABELS, type LocationType } from "@/lib/roles";
 import { PortalHeader, QuickTile, StatTile } from "./shared";
+import { DamageSummary } from "./DamageSummary";
 
 export function BranchPortal({ location, label }: { location: LocationType; label: string }) {
   const { data } = useQuery({
@@ -40,6 +41,10 @@ export function BranchPortal({ location, label }: { location: LocationType; labe
         <StatTile title="Items tracked" value={data?.inventory.length ?? 0} icon={Warehouse} tone="accent" />
         <StatTile title="Confirmed deliveries" value={(data?.incoming ?? []).filter((r) => r.status === "picked_up").length} icon={PackageCheck} tone="success" />
       </div>
+
+      <DamageSummary location={location} title={`${label} — Damage Summary`} showBreakdown />
+
+
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>

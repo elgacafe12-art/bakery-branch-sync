@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Send, ChefHat, Truck, Warehouse, AlertTriangle, ClipboardList } from "lucide-react";
 import { LOCATION_LABELS, STATUS_COLORS, STATUS_LABELS } from "@/lib/roles";
 import { PortalHeader, QuickTile, StatTile } from "./shared";
+import { DamageSummary } from "./DamageSummary";
 
 export function BakeryPortal() {
   const { data } = useQuery({
@@ -43,6 +44,10 @@ export function BakeryPortal() {
         <StatTile title="My open requests" value={data?.mine.length ?? 0} icon={ClipboardList} tone="warning" />
         <StatTile title="Low ingredients" value={data?.lowStock.length ?? 0} icon={AlertTriangle} tone="destructive" />
       </div>
+
+      <DamageSummary location="central_bakery" title="Central Bakery — Damage Summary" showBreakdown />
+
+
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">

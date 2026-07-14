@@ -15,6 +15,7 @@ import { BakeryPortal } from "@/components/portals/BakeryPortal";
 import { DeliveryPortal } from "@/components/portals/DeliveryPortal";
 import { BranchPortal } from "@/components/portals/BranchPortal";
 import { PortalHeader, QuickTile, StatTile } from "@/components/portals/shared";
+import { DamageSummary } from "@/components/portals/DamageSummary";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -82,6 +83,15 @@ function AdminPortal() {
         <StatTile title="Movements (24h)" value={stats?.movements24h ?? 0} icon={TrendingUp} tone="accent" />
         <StatTile title="Low-stock items" value={stats?.lowStock?.length ?? 0} icon={AlertTriangle} tone="destructive" />
       </div>
+
+      <DamageSummary
+        title="Company-wide Damage Summary"
+        showBreakdown
+        showValue
+        locations={["central_store", "central_bakery", "branch_1", "branch_2"]}
+      />
+
+
 
       {stats?.lowStock && stats.lowStock.length > 0 && (
         <Card className="border-warning/40 bg-warning/5">
