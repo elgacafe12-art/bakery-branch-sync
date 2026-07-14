@@ -42,6 +42,10 @@ export function BranchPortal({ location, label }: { location: LocationType; labe
         <StatTile title="Confirmed deliveries" value={(data?.incoming ?? []).filter((r) => r.status === "picked_up").length} icon={PackageCheck} tone="success" />
       </div>
 
+      <DamageSummary location={location} title={`${label} — Damage Summary`} showBreakdown />
+
+
+
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">

@@ -45,6 +45,10 @@ export function BakeryPortal() {
         <StatTile title="Low ingredients" value={data?.lowStock.length ?? 0} icon={AlertTriangle} tone="destructive" />
       </div>
 
+      <DamageSummary location="central_bakery" title="Central Bakery — Damage Summary" showBreakdown />
+
+
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2"><Send className="h-5 w-5" /> My recent requests</CardTitle>
