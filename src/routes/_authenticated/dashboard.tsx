@@ -92,6 +92,10 @@ function AdminPortal() {
         locations={["central_store", "central_bakery", "branch_1", "branch_2"]}
       />
 
+      <NotesReminders />
+
+
+
 
 
       {stats?.lowStock && stats.lowStock.length > 0 && (
