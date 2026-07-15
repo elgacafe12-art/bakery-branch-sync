@@ -6,7 +6,7 @@ import {
 import {
   Coffee, LayoutDashboard, Users, Truck, Package, ShoppingBasket, Store,
   ClipboardList, Send, ChefHat, Bell, BarChart3, LogOut, Warehouse, PackageCheck,
-  AlertTriangle,
+  AlertTriangle, StickyNote,
 } from "lucide-react";
 import type { AppRole } from "@/lib/roles";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +25,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
     items: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, roles: "all" },
       { title: "Notifications", url: "/notifications", icon: Bell, roles: "all" },
+      { title: "Notes & Reminders", url: "/notes", icon: StickyNote, roles: ["admin"] },
     ],
   },
   {
