@@ -20,9 +20,25 @@ export const Route = createFileRoute("/api/public/hooks/dispatch-push")({
         const vapidPublic = process.env.VAPID_PUBLIC_KEY;
         const vapidPrivate = process.env.VAPID_PRIVATE_KEY;
         const vapidSubject = process.env.VAPID_SUBJECT || "mailto:admin@example.com";
-        const expectedSecret = process.env.PUSH_DISPATCH_SECRET;
 
-        if (!expectedSecret) {
+        if (!url || !serviceKey || !vapidPublic || !vapidPrivate) {
+          return new Response(JSON.stringify({ error: "unavailable" }), { status: 503 });
+        }
+
+        const admin = createClient<Database>(url, serviceKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+
+        // Fetch the expected shared secret from Supabase Vault (rotated
+        // server-side; never embedded in migrations or env files).
+        const { data: secretRow, error: secretErr } = await admin
+          .schema("vault" as never)
+          .from("decrypted_secrets" as never)
+          .select("decrypted_secret")
+          .eq("name", "push_dispatch_secret")
+          .maybeSingle();
+        const expectedSecret = (secretRow as { decrypted_secret?: string } | null)?.decrypted_secret;
+        if (secretErr || !expectedSecret) {
           return new Response(JSON.stringify({ error: "unavailable" }), { status: 503 });
         }
 
@@ -36,15 +52,8 @@ export const Route = createFileRoute("/api/public/hooks/dispatch-push")({
           return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
         }
 
-        if (!url || !serviceKey || !vapidPublic || !vapidPrivate) {
-          return new Response(JSON.stringify({ error: "unavailable" }), { status: 503 });
-        }
-
         webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate);
 
-        const admin = createClient<Database>(url, serviceKey, {
-          auth: { persistSession: false, autoRefreshToken: false },
-        });
 
         const cutoff = new Date(Date.now() - 10 * 60 * 1000).toISOString();
         const { data: notifs, error } = await admin
