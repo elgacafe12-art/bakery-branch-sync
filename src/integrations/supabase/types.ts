@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_notes: {
+        Row: {
+          archived: boolean
+          category: Database["public"]["Enums"]["note_category"]
+          created_at: string
+          description: string | null
+          due_at: string | null
+          id: string
+          last_reminded_at: string | null
+          owner_id: string
+          pinned: boolean
+          priority: Database["public"]["Enums"]["note_priority"]
+          reminder_at: string | null
+          reminder_dismissed: boolean
+          status: Database["public"]["Enums"]["note_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          archived?: boolean
+          category?: Database["public"]["Enums"]["note_category"]
+          created_at?: string
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          last_reminded_at?: string | null
+          owner_id: string
+          pinned?: boolean
+          priority?: Database["public"]["Enums"]["note_priority"]
+          reminder_at?: string | null
+          reminder_dismissed?: boolean
+          status?: Database["public"]["Enums"]["note_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          archived?: boolean
+          category?: Database["public"]["Enums"]["note_category"]
+          created_at?: string
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          last_reminded_at?: string | null
+          owner_id?: string
+          pinned?: boolean
+          priority?: Database["public"]["Enums"]["note_priority"]
+          reminder_at?: string | null
+          reminder_dismissed?: boolean
+          status?: Database["public"]["Enums"]["note_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -760,6 +814,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      emit_note_reminders: { Args: never; Returns: undefined }
       emit_reminders: { Args: never; Returns: undefined }
       ingredients: {
         Args: { "": Database["public"]["Tables"]["inventory"]["Row"] }
@@ -852,6 +907,18 @@ export type Database = {
         | "damage"
         | "adjustment"
         | "usage"
+      note_category:
+        | "inventory"
+        | "suppliers"
+        | "finance"
+        | "staff"
+        | "maintenance"
+        | "branch_operations"
+        | "central_store"
+        | "central_bakery"
+        | "general"
+      note_priority: "low" | "medium" | "high"
+      note_status: "pending" | "completed"
       request_status:
         | "pending"
         | "approved"
@@ -1013,6 +1080,19 @@ export const Constants = {
         "adjustment",
         "usage",
       ],
+      note_category: [
+        "inventory",
+        "suppliers",
+        "finance",
+        "staff",
+        "maintenance",
+        "branch_operations",
+        "central_store",
+        "central_bakery",
+        "general",
+      ],
+      note_priority: ["low", "medium", "high"],
+      note_status: ["pending", "completed"],
       request_status: [
         "pending",
         "approved",
