@@ -6,7 +6,7 @@ import {
 import {
   Coffee, LayoutDashboard, Users, Truck, Package, ShoppingBasket, Store,
   ClipboardList, Send, ChefHat, Bell, BarChart3, LogOut, Warehouse, PackageCheck,
-  AlertTriangle,
+  AlertTriangle, StickyNote,
 } from "lucide-react";
 import type { AppRole } from "@/lib/roles";
 import { supabase } from "@/integrations/supabase/client";
