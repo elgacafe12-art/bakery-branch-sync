@@ -20,6 +20,7 @@ import { Route as AuthenticatedReceiveRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated/products'
 import { Route as AuthenticatedProductionRouteImport } from './routes/_authenticated/production'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
+import { Route as AuthenticatedNotesRouteImport } from './routes/_authenticated/notes'
 import { Route as AuthenticatedMovementsRouteImport } from './routes/_authenticated/movements'
 import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
 import { Route as AuthenticatedIngredientsRouteImport } from './routes/_authenticated/ingredients'
@@ -86,6 +87,11 @@ const AuthenticatedNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedNotesRoute = AuthenticatedNotesRouteImport.update({
+  id: '/notes',
+  path: '/notes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMovementsRoute = AuthenticatedMovementsRouteImport.update({
   id: '/movements',
   path: '/movements',
@@ -150,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/ingredients': typeof AuthenticatedIngredientsRoute
   '/inventory': typeof AuthenticatedInventoryRoute
   '/movements': typeof AuthenticatedMovementsRoute
+  '/notes': typeof AuthenticatedNotesRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/production': typeof AuthenticatedProductionRoute
   '/products': typeof AuthenticatedProductsRoute
@@ -172,6 +179,7 @@ export interface FileRoutesByTo {
   '/ingredients': typeof AuthenticatedIngredientsRoute
   '/inventory': typeof AuthenticatedInventoryRoute
   '/movements': typeof AuthenticatedMovementsRoute
+  '/notes': typeof AuthenticatedNotesRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/production': typeof AuthenticatedProductionRoute
   '/products': typeof AuthenticatedProductsRoute
@@ -196,6 +204,7 @@ export interface FileRoutesById {
   '/_authenticated/ingredients': typeof AuthenticatedIngredientsRoute
   '/_authenticated/inventory': typeof AuthenticatedInventoryRoute
   '/_authenticated/movements': typeof AuthenticatedMovementsRoute
+  '/_authenticated/notes': typeof AuthenticatedNotesRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/production': typeof AuthenticatedProductionRoute
   '/_authenticated/products': typeof AuthenticatedProductsRoute
@@ -220,6 +229,7 @@ export interface FileRouteTypes {
     | '/ingredients'
     | '/inventory'
     | '/movements'
+    | '/notes'
     | '/notifications'
     | '/production'
     | '/products'
@@ -242,6 +252,7 @@ export interface FileRouteTypes {
     | '/ingredients'
     | '/inventory'
     | '/movements'
+    | '/notes'
     | '/notifications'
     | '/production'
     | '/products'
@@ -265,6 +276,7 @@ export interface FileRouteTypes {
     | '/_authenticated/ingredients'
     | '/_authenticated/inventory'
     | '/_authenticated/movements'
+    | '/_authenticated/notes'
     | '/_authenticated/notifications'
     | '/_authenticated/production'
     | '/_authenticated/products'
@@ -365,6 +377,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/notes': {
+      id: '/_authenticated/notes'
+      path: '/notes'
+      fullPath: '/notes'
+      preLoaderRoute: typeof AuthenticatedNotesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/movements': {
       id: '/_authenticated/movements'
       path: '/movements'
@@ -445,6 +464,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedIngredientsRoute: typeof AuthenticatedIngredientsRoute
   AuthenticatedInventoryRoute: typeof AuthenticatedInventoryRoute
   AuthenticatedMovementsRoute: typeof AuthenticatedMovementsRoute
+  AuthenticatedNotesRoute: typeof AuthenticatedNotesRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedProductionRoute: typeof AuthenticatedProductionRoute
   AuthenticatedProductsRoute: typeof AuthenticatedProductsRoute
@@ -465,6 +485,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIngredientsRoute: AuthenticatedIngredientsRoute,
   AuthenticatedInventoryRoute: AuthenticatedInventoryRoute,
   AuthenticatedMovementsRoute: AuthenticatedMovementsRoute,
+  AuthenticatedNotesRoute: AuthenticatedNotesRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedProductionRoute: AuthenticatedProductionRoute,
   AuthenticatedProductsRoute: AuthenticatedProductsRoute,
