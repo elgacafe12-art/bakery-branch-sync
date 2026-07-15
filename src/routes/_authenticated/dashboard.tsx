@@ -16,6 +16,7 @@ import { DeliveryPortal } from "@/components/portals/DeliveryPortal";
 import { BranchPortal } from "@/components/portals/BranchPortal";
 import { PortalHeader, QuickTile, StatTile } from "@/components/portals/shared";
 import { DamageSummary } from "@/components/portals/DamageSummary";
+import { NotesReminders } from "@/components/portals/NotesReminders";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
