@@ -69,7 +69,10 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   settingsRef.current = settings;
   const permissionRef = useRef(permission);
   permissionRef.current = permission;
+  const pushSubscribedRef = useRef(pushSubscribed);
+  pushSubscribedRef.current = pushSubscribed;
   const seenIds = useRef<Set<string>>(new Set());
+
 
   // Load user settings
   useEffect(() => {
