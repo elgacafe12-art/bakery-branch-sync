@@ -47,10 +47,8 @@ function RequestDetail() {
   const { data: deliveryMen } = useQuery({
     queryKey: ["dm-list"],
     queryFn: async () => {
-      const { data: r } = await supabase.from("user_roles").select("user_id").eq("role", "delivery_man");
-      const ids = (r ?? []).map((x) => x.user_id);
-      if (!ids.length) return [];
-      const { data } = await supabase.from("profiles").select("id,full_name").in("id", ids);
+      const { data, error } = await supabase.rpc("list_delivery_staff");
+      if (error) return [];
       return data ?? [];
     },
   });
