@@ -20,6 +20,10 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
   try {
     const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
     await navigator.serviceWorker.ready;
+    // Hand the VAPID key to the SW so it can auto-resubscribe on rotation.
+    if (VAPID_PUBLIC_KEY && reg.active) {
+      try { reg.active.postMessage({ type: "set-vapid-key", key: VAPID_PUBLIC_KEY }); } catch { /* ignore */ }
+    }
     return reg;
   } catch (e) {
     console.warn("SW registration failed", e);
@@ -27,11 +31,35 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
   }
 }
 
+async function persistSubscription(userId: string, sub: PushSubscription): Promise<void> {
+  const json = sub.toJSON() as { endpoint?: string; keys?: { p256dh?: string; auth?: string } };
+  if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) return;
+  await supabase.from("push_subscriptions").upsert(
+    {
+      user_id: userId,
+      endpoint: json.endpoint,
+      p256dh: json.keys.p256dh,
+      auth: json.keys.auth,
+      user_agent: navigator.userAgent,
+    },
+    { onConflict: "endpoint" }
+  );
+}
+
 export async function subscribeToPush(userId: string): Promise<PushSubscription | null> {
   if (!isPushSupported() || !VAPID_PUBLIC_KEY) return null;
   const reg = await registerServiceWorker();
   if (!reg) return null;
   let sub = await reg.pushManager.getSubscription();
+  // Detect invalid/expired subscriptions and recreate them.
+  if (sub && (sub as PushSubscription & { expirationTime?: number | null }).expirationTime && (sub as PushSubscription & { expirationTime?: number | null }).expirationTime! < Date.now()) {
+    try {
+      const oldEndpoint = sub.endpoint;
+      await sub.unsubscribe().catch(() => {});
+      await supabase.from("push_subscriptions").delete().eq("endpoint", oldEndpoint);
+    } catch { /* ignore */ }
+    sub = null;
+  }
   if (!sub) {
     try {
       sub = await reg.pushManager.subscribe({
@@ -43,18 +71,23 @@ export async function subscribeToPush(userId: string): Promise<PushSubscription 
       return null;
     }
   }
-  const json = sub.toJSON() as { endpoint?: string; keys?: { p256dh?: string; auth?: string } };
-  if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) return sub;
-  await supabase.from("push_subscriptions").upsert(
-    {
-      user_id: userId,
-      endpoint: json.endpoint,
-      p256dh: json.keys.p256dh,
-      auth: json.keys.auth,
-      user_agent: navigator.userAgent,
-    },
-    { onConflict: "endpoint" }
-  );
+  await persistSubscription(userId, sub);
+
+  // Listen for SW-driven resubscribe (rotation) and persist the new endpoint.
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.addEventListener("message", async (ev) => {
+      const data = (ev.data ?? {}) as { type?: string; subscription?: { endpoint?: string; keys?: { p256dh?: string; auth?: string } } };
+      if (data.type === "push-subscription-changed" && data.subscription?.endpoint && data.subscription.keys?.p256dh && data.subscription.keys?.auth) {
+        await supabase.from("push_subscriptions").upsert({
+          user_id: userId,
+          endpoint: data.subscription.endpoint,
+          p256dh: data.subscription.keys.p256dh,
+          auth: data.subscription.keys.auth,
+          user_agent: navigator.userAgent,
+        }, { onConflict: "endpoint" });
+      }
+    });
+  }
   return sub;
 }
 
