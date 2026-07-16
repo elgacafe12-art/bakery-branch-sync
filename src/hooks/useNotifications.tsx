@@ -99,10 +99,34 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     })();
   }, [user]);
 
-  // Realtime subscription
+  // Realtime subscription with catch-up on (re)connect
   useEffect(() => {
     if (!user) return;
     primeAudio();
+    let lastSeenAt = new Date().toISOString();
+
+    const catchUp = async () => {
+      try {
+        const { data } = await supabase
+          .from("notifications")
+          .select("*")
+          .eq("user_id", user.id)
+          .gt("created_at", lastSeenAt)
+          .order("created_at", { ascending: true })
+          .limit(50);
+        if (!data?.length) return;
+        for (const row of data) {
+          const n = row as AppNotification;
+          if (seenIds.current.has(n.id)) continue;
+          seenIds.current.add(n.id);
+          handleIncoming(n);
+          if (n.created_at > lastSeenAt) lastSeenAt = n.created_at;
+        }
+      } catch (e) {
+        console.warn("notif catch-up failed", e);
+      }
+    };
+
     const channel = supabase
       .channel(`notif-user-${user.id}`)
       .on(
@@ -112,11 +136,22 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
           const n = payload.new as AppNotification;
           if (seenIds.current.has(n.id)) return;
           seenIds.current.add(n.id);
+          if (n.created_at > lastSeenAt) lastSeenAt = n.created_at;
           handleIncoming(n);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") catchUp();
+      });
+
+    const onVisible = () => { if (document.visibilityState === "visible") catchUp(); };
+    const onOnline = () => catchUp();
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("online", onOnline);
+
     return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("online", onOnline);
       supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -135,6 +170,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
     const showToast = priority === "critical" ? toast.error : priority === "reminder" ? toast.warning : toast;
     showToast(n.title, {
+      id: n.id, // sonner dedupes by id — extra guard against duplicate toasts
       description,
       duration: priority === "critical" ? 10000 : 5000,
       icon: <Icon className="h-4 w-4" />,
@@ -148,11 +184,15 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       playNotificationSound(priorityToSound(priority));
     }
 
-    // Browser system notification (fallback when tab is not focused)
+    // Browser system notification (fallback when tab is not focused).
+    // Skip when the SW push subscription is active — the push dispatcher
+    // will deliver an SW notification with the same tag, so showing one
+    // here would duplicate it on hidden tabs.
     if (
       permissionRef.current === "granted" &&
       typeof document !== "undefined" &&
-      document.visibilityState !== "visible"
+      document.visibilityState !== "visible" &&
+      !pushSubscribedRef.current
     ) {
       try {
         const notif = new Notification(n.title, {
@@ -172,6 +212,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [navigate]);
+
 
   const setSettings = useCallback(async (patch: Partial<NotificationSettings>) => {
     if (!user) return;
