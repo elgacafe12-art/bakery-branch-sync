@@ -841,6 +841,13 @@ export type Database = {
         Args: { _id: string; _type: Database["public"]["Enums"]["item_type"] }
         Returns: string
       }
+      list_delivery_staff: {
+        Args: never
+        Returns: {
+          full_name: string
+          id: string
+        }[]
+      }
       notify_users: {
         Args: {
           _item_id?: string
